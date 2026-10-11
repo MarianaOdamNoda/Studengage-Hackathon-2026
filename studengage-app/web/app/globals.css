@@ -1,0 +1,74 @@
+@import "tailwindcss";
+
+/*
+ * Studengage design tokens — same palette as the pitch deck.
+ * Use the Tailwind names (bg-ground, text-ink, text-muted, border-hairline, bg-emerald, …)
+ * or the component classes below. Do not introduce new colours in feature code.
+ */
+@theme {
+  --color-ink: #0b1a15;
+  --color-ink-soft: #2c4a3e;
+  --color-muted: #5b6f67;
+  --color-ground: #f2fdf7;
+  --color-ground-2: #e6faef;
+  --color-card: #ffffff;
+  --color-emerald: #0e9f6e;
+  --color-emerald-deep: #046c4e;
+  --color-volt: #34d399;
+  --color-wash: rgb(14 159 110 / 0.08);
+  --color-hairline: rgb(11 26 21 / 0.12);
+  --color-hairline-strong: rgb(11 26 21 / 0.2);
+  --color-amber: #b45309;
+  --color-amber-wash: #fef3c7;
+  --color-rose: #be123c;
+  --color-rose-wash: #ffe4e6;
+
+  --font-sans: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "Cascadia Mono", Consolas, ui-monospace, monospace;
+
+  --shadow-card: 0 1px 2px rgb(11 26 21 / 0.04), 0 8px 28px rgb(16 185 129 / 0.1);
+  --radius-card: 14px;
+}
+
+html {
+  color-scheme: light;
+}
+body {
+  background: var(--color-ground);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-emerald);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+@layer components {
+  .card {
+    @apply rounded-[var(--radius-card)] border border-hairline bg-card shadow-[var(--shadow-card)];
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-hairline-strong bg-card px-4 py-2 text-sm font-medium text-ink transition-colors hover:border-emerald hover:text-emerald disabled:cursor-not-allowed disabled:opacity-40;
+  }
+  .btn-primary {
+    @apply border-emerald bg-emerald text-white hover:border-emerald-deep hover:bg-emerald-deep hover:text-white;
+  }
+  .btn-ghost {
+    @apply border-transparent bg-transparent hover:bg-wash;
+  }
+  .input {
+    @apply w-full rounded-lg border border-hairline-strong bg-card px-3 py-2 text-sm text-ink placeholder:text-muted focus:border-emerald focus:outline-none;
+  }
+  .label {
+    @apply mb-1 block text-xs font-semibold uppercase tracking-wide text-muted;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1 rounded-full border border-hairline bg-ground-2 px-2.5 py-0.5 text-xs font-medium text-ink-soft;
+  }
+  .eyebrow {
+    @apply font-mono text-xs font-semibold uppercase tracking-[0.14em] text-emerald;
+  }
+}
