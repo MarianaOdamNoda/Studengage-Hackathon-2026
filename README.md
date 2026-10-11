@@ -1,116 +1,75 @@
-<div align="center">
+# Studengage (teamStar)
 
-# 🌟 Studengage
+Universities post opportunities once; Studengage ranks them for every student and delivers only the
+ones that fit each person's interests, eligibility and timetable. Students tell us what they think,
+and their feed adapts.
 
-### The right university information, in front of the right student.
+This is a fully local demo for fictional **Bluenose University** (Nova Scotia). No internet, no accounts,
+no AI/LLM calls: ranking is a transparent weighted formula (the "Studengage ranking engine").
 
-**A hackathon prototype for discovering campus events, bursaries, and co-op opportunities — without searching every university channel.**
+## Run it
 
-![Hackathon 2026](https://img.shields.io/badge/Hackathon-2026-0E9F6E?style=for-the-badge)
-![Project status: Prototype](https://img.shields.io/badge/Status-Prototype-0B1A15?style=for-the-badge)
-![Data: Simulated](https://img.shields.io/badge/Data-Simulated-34B98C?style=for-the-badge)
+Requirements: Node.js 20+ on Windows, macOS or Linux.
 
-<img src="docs/images/demo-landing.png" alt="Studengage demo start screen with student-side and university-side options" width="100%" />
+```powershell
+.\start.ps1            # installs dependencies, seeds the DB if missing, starts http://localhost:3000
+.\start.ps1 -Reseed    # same, but wipes and reseeds the demo data first
+```
 
-*The demo's entry screen: explore the same university postings from a student's or a university's perspective.*
+Or by hand:
 
-[**The problem**](#the-problem) · [**Our solution**](#our-solution) · [**How it works**](#how-it-works) · [**Project visuals**](#project-visuals) · [**Team**](#team)
+```bash
+cd web
+npm install
+npm run seed     # creates ../data/studengage.db and ../demo-data/bluenose-postings.csv
+npm run dev
+```
 
-</div>
+Other commands (in `web/`): `npm test` (Vitest), `npm run typecheck`, `npm run lint`.
+The home page also has a **Reset demo data** button, so you can rerun the demo as many times as you like.
+All dates are relative to the moment you seed, so the demo always looks current.
 
----
+## How ranking works
 
-## 💡 The problem
+1. **Hard rules first.** Students who aren't eligible (level, program, year, campus, co-op, residence, opt-in equity group…)
+   or postings that have closed never reach the feed. Equity self-identification is opt-in and used *only* here.
+2. **Score** = interest .35 · schedule .20 · urgency .15 · distance .10 · preferred-criteria match .10 · popularity in your program .10.
+3. **Schedule-aware.** A full clash goes to a collapsed "Conflicts with your schedule" section; partial overlaps rank lower
+   with a label; 20 minutes of travel is allowed between campuses; recurring events say "3 of 4 sessions fit".
+4. **Notifications** go out immediately on publish for items scoring ≥ 0.5, at most the student's weekly limit (default 5)
+   in any 7 days, best matches first.
+5. **Feedback** (Interested / Not interested / attended) shifts tag weights, so the feed learns.
 
-Campus opportunities are often scattered across **emails, portals, department pages, and other communication channels**. Students may miss a bursary deadline, a networking event, or a co-op posting simply because they didn't see the right announcement in time.
+## Pitch demo script (about 4 minutes)
 
-Our hackathon challenge was not to invent more announcements. It was to **make existing announcements easier for the right students to discover**.
+1. **Home page** — read the two-sentence pitch. Point at the impact strip: "on 256 simulated students, the same
+   attention budget finds far more relevant items than broadcasting everything". (The 30% is a pilot *target*.)
+2. **Student side → Amara** (3rd-year Chemistry).
+   - The attendance pop-up appears: she marked the *Black Student Networking Mixer* as interested and it has ended. Answer "Attended".
+   - Her top items are research-related, each with plain reasons ("Matches your interest in research and career",
+     "Fits your free time Thu 5:30 PM–7:30 PM").
+   - Open **Conflicts with your schedule**: two items clash with her Organic Chemistry and lab blocks, so they're tucked away, not deleted.
+   - Click **Not interested** on one item and show it move to Dismissed (undo is one click).
+3. **Switch persona → Jordan** (part-time Nursing, student parent). Top of her feed is the **Student Parent Bursary**,
+   which no other persona sees: it's restricted to students who opted in to that group. Her busy timetable
+   (clinicals + school pickup) drives what fits.
+4. **Switch → Liam** (Commerce co-op): the *Co-op Resume Clinic* shows "Overlaps COMM 2201 Accounting until 2:20 PM"
+   — a partial overlap is ranked lower but still shown. Wei, Priya and Sofia each have a completely different top three.
+5. **University side** (Dana MacLeod, Student Services) → **Upload CSV** → *Download demo CSV* → upload it.
+   The preview validates all ~30 postings; **Publish all** shows, per posting, how many students it matched,
+   how many were notified, how many had a clash, and how many weren't eligible.
+6. Go back to a student tab (e.g. Amara): the **bell** lights up live with at most 5 new notifications — her best new
+   matches (e.g. the *Black Student Success Bursary*, *Summer Research Assistant*), not all 30.
+7. **Dashboard** — broadcast vs Studengage numbers and the postings table (matched → notified → interested → attended).
+   Open a posting for the aggregate funnel (no individual student data is shown to staff).
 
-<img src="docs/images/problem-slide.png" alt="Hackathon pitch slide outlining the recurring student-information problem and missed opportunities" width="100%" />
+## Project layout
 
-*An excerpt from our hackathon pitch: three ways missed information impacts students.*
+- `web/` — Next.js 15 app (App Router, TypeScript, Tailwind v4), SQLite via better-sqlite3.
+  - `lib/engine/` — eligibility filter, schedule fit, scoring formula, scorer interface.
+  - `lib/services/` — the only server API the UI uses (feed, publishing, CSV import, impact, seed).
+  - `scripts/seed.ts` — `npm run seed`.
+- `data/studengage.db` — the local database (created by the seed).
+- `demo-data/` — the demo CSV to upload live, plus its format documentation.
 
-## 🚀 Our solution
-
-**Studengage** matches university announcements with individual students based on their self-declared profile and schedule. Students receive a shorter, more relevant feed; university staff can publish opportunities and review their **simulated** reach.
-
-| 🎓 Student experience | 🏫 University experience |
-| :--- | :--- |
-| Personalized feed of opportunities | Create posts or import a demo CSV |
-| Recommendations with clear reasons | Reach students whose profiles match |
-| Class-schedule conflict checks | Review engagement and reach in the demo |
-| Deadlines and limited notifications | Compare targeted delivery with broad announcements |
-| Interest-based feedback | Keep content under university control |
-
-## 🔄 How it works
-
-1. **Publish:** University staff add events, bursaries, and co-op opportunities using a form or CSV upload.
-2. **Set preferences:** Students enter their program, year, campus, interests, and available times.
-3. **Filter and rank:** The engine considers matching criteria and conflicts with classes, then ranks the remaining opportunities.
-4. **Explain:** The student sees a focused feed, including why an opportunity appears and any relevant deadlines.
-5. **Act:** Students follow the posting to the university's own page to apply or participate.
-6. **Refine:** Interest and participation feedback can adjust future rankings.
-
-## 🛠️ What we built
-
-- A **transparent matching and ranking engine** that considers interests, timetable availability, deadlines, and other criteria.
-- **Schedule-aware recommendations**, including checks for class conflicts.
-- **Explainable recommendation cards** showing why opportunities are relevant.
-- A **student-side demo** with selectable student personas and a ranked feed.
-- A **university-side demo** for creating posts, uploading a CSV, and inspecting simulated outcomes.
-- An **impact comparison** that contrasts broad announcements with personalized recommendations in the simulation.
-
-> **Technical note:** The hackathon prototype uses an explainable, **rule-based scoring formula — not a running AI model**. A possible next step is AI-assisted extraction of tags and criteria from free-text university announcements.
-
-## 🖼️ Project visuals
-
-### Behind the matching
-
-<img src="docs/images/ranking-slide.png" alt="Pitch slide explaining the transparent ranking system and planned role of AI" width="100%" />
-
-*Our pitch explained what the ranking engine currently does and where AI could help in a future version.*
-
-### Presentation and demo
-
-<img src="docs/images/pitch-cover.png" alt="Studengage hackathon pitch cover with team and star mascot" width="100%" />
-
-📄 **[View the full hackathon pitch deck (PDF)](docs/pitch-deck.pdf)**
-
-> The website screenshot above shows the **demo landing page**, not the student feed or university dashboard. Those views would be useful additions once separate screenshots are available.
-
-## 🧪 Prototype scope
-
-The prototype was demonstrated using **Bluenose University**, a fictional campus, with **256 simulated students** (six sample personas and 250 generated profiles). No real student login or data is required for the demonstration.
-
-The team's pitch proposed a **30% improvement in relevant reach** as a goal for a future pilot — **not** as a measured real-world result. The simulation is intended to explore the approach, not establish actual student outcomes.
-
-## 🔮 What's next?
-
-- Explore AI-assisted interpretation of university announcements.
-- Test usability and recommendation relevance with consenting students and university staff.
-- Evaluate real-world reach and missed-opportunity rates against an agreed baseline.
-- Review accessibility, privacy, and institutional integration before a live pilot.
-
-## 👥 Team
-
-Built collaboratively during a **2026 hackathon** by:
-
-- **David**
-- **Emmanuel**
-- **Mariana**
-
-The project was designed, discussed, developed, and tested together, **largely using one computer**. Team members can be linked to their GitHub profiles here once their usernames are available.
-
----
-
-<div align="center">
-
-**Studengage** · A hackathon prototype, not a live university service.
-
-</div>
-
-Test with real students and university staff, with appropriate consent and privacy review.
-
-Evaluate whether personalized delivery improves the reach of relevant announcements.
-
-Studengage is a hackathon prototype, not a production university service.
+Bluenose University and every person in the demo are fictional.

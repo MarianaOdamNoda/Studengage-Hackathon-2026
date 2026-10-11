@@ -1,0 +1,18 @@
+   ▲ Next.js 15.5.27
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.237.1:3000
+
+ ✓ Starting...
+ ⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of C:\Users\maria\package-lock.json as the root directory.
+ To silence this warning, set `outputFileTracingRoot` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/output#caveats for more information.
+ Detected additional lockfiles: 
+   * C:\Users\maria\Documents\Star\studengage-app\web\package-lock.json
+
+ ✓ Ready in 1272ms
+[student] getFeed failed: Error: Student not found.
+    at Y (C:\Users\maria\Documents\Star\studengage-app\web\.next-build\server\chunks\249.js:109:3360)
+    at <unknown> (C:\Users\maria\Documents\Star\studengage-app\web\.next-build\server\app\student\feed\page.js:2:8174)
+    at f (C:\Users\maria\Documents\Star\studengage-app\web\.next-build\server\chunks\431.js:1:20518)
+    at l (C:\Users\maria\Documents\Star\studengage-app\web\.next-build\server\app\student\feed\page.js:2:8161)
